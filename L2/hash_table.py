@@ -1,4 +1,6 @@
 import random, sys, time
+from sympy import nextprime
+import random
 
 ###########################################################################
 #                                                                         #
@@ -15,10 +17,8 @@ import random, sys, time
 # Return value: a hash value
 def calculate_hash(key):
     assert type(key) == str
-    # !Note: This is not a good hash function. Do you see why?
-    hash = 0
-    for i in key:
-        hash += ord(i)
+    random.seed(key)
+    hash = random.randint(1,1000000) 
     return hash
 
 
@@ -62,6 +62,7 @@ class HashTable:
     #               and the value is updated.
     def put(self, key, value):
         assert type(key) == str
+        self.check_and_resize_table()
         self.check_size() # Note: Don't remove this code.
         bucket_index = calculate_hash(key) % self.bucket_size
         item = self.buckets[bucket_index]
@@ -98,10 +99,23 @@ class HashTable:
     #               otherwise.
     def delete(self, key):
         assert type(key) == str
-        #------------------------#
-        # !Write your code here!  #
-        #------------------------#
-        pass
+        self.check_and_resize_table()
+        self.check_size()
+        bucket_index = calculate_hash(key) % self.bucket_size
+        item =  self.buckets[bucket_index]
+        prev_item = None
+        while item:
+            if item.key == key:
+                # if the item is not the first item
+                if prev_item:
+                    prev_item.next = item.next
+                else:
+                    self.buckets[bucket_index] = item.next
+                self.item_count -= 1
+                return True
+            prev_item = item
+            item = item.next
+        return False
 
     # Return the total number of items in the hash table.
     def size(self):
@@ -115,7 +129,25 @@ class HashTable:
     def check_size(self):
         assert (self.bucket_size < 100 or
                 self.item_count >= self.bucket_size * 0.3)
+        
+    def rehash(self):
+        new_buckets = [None] * self.bucket_size
+        for item in self.buckets:
+            while item:
+                bucket_index = calculate_hash(item.key) % self.bucket_size
+                new_item = Item(item.key, item.value, new_buckets[bucket_index])
+                new_buckets[bucket_index] = new_item
+                item = item.next
+        self.buckets = new_buckets
 
+    def check_and_resize_table(self):
+        if self.item_count < self.bucket_size * 0.3 :
+            self.bucket_size = nextprime(self.bucket_size // 2)
+            self.rehash()
+        elif self.item_count > self.bucket_size * 0.7 :
+            self.bucket_size = nextprime(self.bucket_size * 2)
+            self.rehash()
+    
 
 # Test the functional behavior of the hash table.
 def functional_test():
