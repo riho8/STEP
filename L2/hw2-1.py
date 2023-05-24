@@ -11,12 +11,13 @@ import random
 #                                                                         #
 ###########################################################################
 
-# Hash function.
-#
+# Hash function. Generate a hash value in the range of 1 ~ 1000000 from the key.
+# 
 # |key|: string
 # Return value: a hash value
 def calculate_hash(key):
     assert type(key) == str
+    #random.seed(): if you use the same seed, you will get the same random number
     random.seed(key)
     hash = random.randint(1,1000000) 
     return hash
@@ -106,7 +107,7 @@ class HashTable:
         prev_item = None
         while item:
             if item.key == key:
-                # if the item is not the first item
+                # if the item is not the first item of bucket_index
                 if prev_item:
                     prev_item.next = item.next
                 else:
@@ -129,8 +130,10 @@ class HashTable:
     def check_size(self):
         assert (self.bucket_size < 100 or
                 self.item_count >= self.bucket_size * 0.3)
-    #TODO: description
+    
+    # Recreate the hash table. 
     def rehash(self):
+        # create a new table
         new_buckets = [None] * self.bucket_size
         for item in self.buckets:
             while item:
@@ -139,11 +142,15 @@ class HashTable:
                 new_buckets[bucket_index] = new_item
                 item = item.next
         self.buckets = new_buckets
-    #TODO: description
+    
+    # Check if the hash table needs to be resized.
     def check_and_resize_table(self):
+        # Note: bucket_size should be a prime number.
+        # if the table is too small (less than 30% used), resize it to half.
         if self.item_count < self.bucket_size * 0.3 :
             self.bucket_size = nextprime(self.bucket_size // 2)
             self.rehash()
+        # if the table is too large (more than 70% used), resize it to double.
         elif self.item_count > self.bucket_size * 0.7 :
             self.bucket_size = nextprime(self.bucket_size * 2)
             self.rehash()
