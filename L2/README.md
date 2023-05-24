@@ -13,7 +13,9 @@
 
 ### **How to Run**
 
-- To run the program, execute **`python3 hw2-1.py`**.
+```python
+$ python3 hw2-1.py
+```
 
 The program includes tests to verify the behavior and performance of the hash table.
 
@@ -23,9 +25,9 @@ If the output shows "Functional tests passed!" and "Performance tests passed!", 
 
 The delete() function is implemented using the following steps:
 
-- Calculate the hash value.
-- Access the bucket that corresponds to the hash value and search for the target item.
-- If the target item is found, delete it.
+1. Calculate the hash value.
+2. Access the bucket that corresponds to the hash value and search for the target item.
+3. If the target item is found, delete it.
 
 Points:
 
@@ -35,8 +37,8 @@ Points:
 
 The calculate_hash() function is improved using the following steps:
 
-- Generate a seed value from the key using **`random.seed()`**.
-- Generate a random value between 1 and 1000000 using **`random.randint()`** based on the seed.
+1. Generate a seed value from the key using **`random.seed()`**.
+2. Generate a random value between 1 and 1000000 using **`random.randint()`** based on the seed.
 
 Points:
 
@@ -61,15 +63,15 @@ The rehashing process is implemented using the following steps:
 
 **`check_and_resize_table()`**
 
-- Check if the hash table needs to be resized.
+1. Check if the hash table needs to be resized.
     - If the table is too small (less than 30% used), the bucket size is halved.
     - If the table is too large (more than 70% used), the bucket size is doubled.
 
 **`rehash()`**
 
-- Create a new hash table with the new bucket size.
-- Take out the elements from the old hash table one by one and reinsert them into the new hash table. The hash value is calculated based on the new size.
-- Switch to using the new hash table.
+1. Create a new hash table with the new bucket size.
+2. Take out the elements from the old hash table one by one and reinsert them into the new hash table. The hash value is calculated based on the new size.
+3. Switch to using the new hash table.
 
 Points:
 
