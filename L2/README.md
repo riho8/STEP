@@ -37,25 +37,14 @@ Points:
 
 The calculate_hash() function is improved using the following steps:
 
-1. Generate a seed value from the key using **`random.seed()`**.
-2. Generate a random value between 1 and 1000000 using **`random.randint()`** based on the seed.
+1. Multiply the current hash value by 97 and add the ASCII value of the current character.
+2. Update the hash variable with the new calculated value.
 
 Points:
 
-- Ensure that the same key will always produce the same hash value by using **`random.seed()`**.
-- The range 1 to 1000000 is chosen because it provides the best performance (determined using performance tests).
-    
-    
-    | Range (1~) | Time (Avg) |
-    | --- | --- |
-    | 1000000000 | 0.722749 |
-    | 100000000 | 0.692857 |
-    | 10000000 | 0.866261 |
-    | 1000000 | 0.52038016 |
-    | 100000 | 0.7688372 |
-    | 10000 | 0.77753694 |
-    | 1000 | 1.171959 |
-    | 100 | 5.162097 |
+- The multiplication by 97 and addition of the ASCII value of the character help create a unique hash value for each different key.
+- 97 was chosen because it is the closest prime number from 94, which is the difference between the ASCII code range of 32 to 126, including commonly used printable characters.
+- Performance: avg: 0.193112 SD: 0.583235 max: 5.226970 min: 0.065486
 
 ### **Implement rehashing**
 
