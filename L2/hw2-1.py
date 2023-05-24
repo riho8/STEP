@@ -16,10 +16,11 @@ from sympy import nextprime
 # Return value: a hash value
 def calculate_hash(key):
     assert type(key) == str
-    #random.seed(): if you use the same seed, you will get the same random number
-    random.seed(key)
-    hash = random.randint(1,1000000) 
+    hash = 0
+    for i in key:
+        hash = int(hash * 97 + ord(i))
     return hash
+
 
 
 # An item object that represents one key - value pair in the hash table.
