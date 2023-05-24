@@ -1,6 +1,5 @@
 import random, sys, time
 from sympy import nextprime
-import random
 
 ###########################################################################
 #                                                                         #
