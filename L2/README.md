@@ -11,8 +11,6 @@
 
 ## hw2-1
 
----
-
 ### **How to Run**
 
 - To run the program, execute **`python3 hw2-1.py`**.
@@ -20,8 +18,6 @@
 The program includes tests to verify the behavior and performance of the hash table.
 
 If the output shows "Functional tests passed!" and "Performance tests passed!", the program is successful.
-
-<br>
 
 ### **Implement the delete() function**
 
@@ -34,8 +30,6 @@ The delete() function is implemented using the following steps:
 Points:
 
 - The deletion method differs depending on whether the item is at the head of the bucket or not.
-
-<br>
 
 ### **Improve the calculate_hash() function**
 
@@ -61,8 +55,6 @@ Points:
     | 1000 | 1.171959 |
     | 100 | 5.162097 |
 
-<br>
-
 ### **Implement rehashing**
 
 The rehashing process is implemented using the following steps:
@@ -84,6 +76,6 @@ Points:
 - The bucket size should be a prime number. To find a prime number, the **`nextprime()`** function from the **`sympy`** library is used.
     - Example: **`from sympy import nextprime`**
 
-## [hw2-2](/hw2-2.md)
+## [hw2-2](hw2-2.md)
 
-## [hw2-3](/hw2-3.md)
+## [hw2-3](hw2-3.md)
