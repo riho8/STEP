@@ -129,7 +129,7 @@ class HashTable:
     def check_size(self):
         assert (self.bucket_size < 100 or
                 self.item_count >= self.bucket_size * 0.3)
-        
+    #TODO: description
     def rehash(self):
         new_buckets = [None] * self.bucket_size
         for item in self.buckets:
@@ -139,7 +139,7 @@ class HashTable:
                 new_buckets[bucket_index] = new_item
                 item = item.next
         self.buckets = new_buckets
-
+    #TODO: description
     def check_and_resize_table(self):
         if self.item_count < self.bucket_size * 0.3 :
             self.bucket_size = nextprime(self.bucket_size // 2)
