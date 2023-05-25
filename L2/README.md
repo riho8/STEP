@@ -1,71 +1,70 @@
 # HW2 (5/19-)
 
-## Explanation of the homework
+## 宿題の概要
 
-1. Create hash table.
-    1. implement delete() function
-    2. improve calculate_hash() function
-    3. implement rehash 
-2. Explain why actual large databases adopt a tree structure rather than a hash table.
-3. Consider a data structure that allows O(1) to manage the cache.
+1. ハッシュテーブルの作成
+    1. delete() 関数の実装
+    2. calculate_hash() 関数の改善
+    3. 再ハッシュの実装
+2. 実際の大規模なデータベースがハッシュテーブルではなく木構造を採用する理由の説明
+3. O(1)でキャッシュを管理できる データ構造の説明
 
 ## hw2-1
 
-### **How to Run**
+### **実行方法**
 
 ```python
 $ python3 hw2-1.py
 ```
 
-The program includes tests to verify the behavior and performance of the hash table.
+プログラムには、ハッシュテーブルの動作とパフォーマンスをテストするための関数が含まれています。
 
-If the output shows "Functional tests passed!" and "Performance tests passed!", the program is successful.
+**`Functional tests passed!`** と **`Performance tests passed!`** と表示されれば成功です。
 
-### **Implement the delete() function**
+### **delete() 関数の実装**
 
-The delete() function is implemented using the following steps:
+以下の手順で実装しました：
 
-1. Calculate the hash value.
-2. Access the bucket that corresponds to the hash value and search for the target item.
-3. If the target item is found, delete it.
+1. ハッシュ値を計算します。
+2. ハッシュ値に対応するバケットにアクセスし、目的の要素を探します。
+3. 目的の要素が見つかれば、それを削除します。
 
-Points:
+ポイント：
 
-- The deletion method differs depending on whether the item is at the head of the bucket or not.
+- バケットの先頭に目的の要素があるかどうかによって、削除方法を変えました。
 
-### **Improve the calculate_hash() function**
+### **calculate_hash() 関数の改善**
 
-The calculate_hash() function is improved using the following steps:
+以下の手順で実装しました：
 
-1. Multiply the current hash value by 97 and add the ASCII value of the current character.
-2. Update the hash variable with the new calculated value.
+1. 現在のハッシュ値に97を掛け、ターゲットの文字のASCII値を足す。
+2. 1の値でハッシュ値を更新する。
 
-Points:
+ポイント：
 
-- The multiplication by 97 and addition of the ASCII value of the character help create a unique hash value for each different key.
-- 97 was chosen because it is the closest prime number from 94, which is the difference between the ASCII code range of 32 to 126, including commonly used printable characters.
-- Performance: avg: 0.193112 SD: 0.583235 max: 5.226970 min: 0.065486
+- 1文字ごとにハッシュ値を更新していくことで、アナグラムの文字同士（例:abc, bca）でも違うハッシュ値が生成されます。
+- 97を選んだのは、素数であり、また初期のテーブルサイズが97だったためです。（あまり根拠はないです）
 
-### **Implement rehashing**
+### 再**ハッシュの実装**
 
-The rehashing process is implemented using the following steps:
+以下の手順で実装しました：
 
 **`check_and_resize_table()`**
 
-1. Check if the hash table needs to be resized.
-    - If the table is too small (less than 30% used), the bucket size is halved.
-    - If the table is too large (more than 70% used), the bucket size is doubled.
+1. ハッシュテーブルのサイズを変更する必要があるかどうかをチェックします。
+    1. テーブルが小さすぎる場合（使用量が30%未満）、`bucket_size`を半分にします。
+    2. テーブルが大きすぎる場合（使用量が70%以上）、`bucket_size`を倍にします。
 
 **`rehash()`**
 
-1. Create a new hash table with the new bucket size.
-2. Take out the elements from the old hash table one by one and reinsert them into the new hash table. The hash value is calculated based on the new size.
-3. Switch to using the new hash table.
+1. 変更した`bucket_size`で新しいハッシュテーブルを作成します。
+2. 古いハッシュテーブルの要素を順番に取り出し、新しいハッシュテーブルに入れます。ハッシュ値の計算は新しいサイズに基づいて行います。
+3. 新しいハッシュテーブルを使用するように切り替えます。
 
-Points:
+ポイント：
 
-- The bucket size should be a prime number. To find a prime number, the **`nextprime()`** function from the **`sympy`** library is used.
-    - Example: **`from sympy import nextprime`**
+- バケットサイズは素数である必要があります。そのため、**`nextprime()`** を使用して素数を見つけました。
+    - **`from sympy import nextprime`**
 
 ## [hw2-2](hw2-2.md)
 
