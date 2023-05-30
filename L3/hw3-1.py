@@ -26,6 +26,16 @@ def read_minus(line, index):
     return token, index + 1
 
 
+def read_multiply(line, index):
+    token = {'type': 'MALTIPLY'}
+    return token, index + 1
+
+
+def read_divide(line, index):
+    token = {'type': 'DIVIDE'}
+    return token, index + 1
+
+
 def tokenize(line):
     tokens = []
     index = 0
@@ -36,6 +46,10 @@ def tokenize(line):
             (token, index) = read_plus(line, index)
         elif line[index] == '-':
             (token, index) = read_minus(line, index)
+        elif line[index] == '*':
+            (token, index) = read_multiply(line, index)
+        elif line[index] == '/':
+            (token, index) = read_divide(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
@@ -44,9 +58,47 @@ def tokenize(line):
 
 
 def evaluate(tokens):
-    answer = 0
+    temp = 0
     tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
     index = 1
+    # Caluculate '*' and '/'
+    while index < len(tokens):
+        if tokens[index]['type'] == 'NUMBER':
+            # if operator is '+' or '-', basicaly just skip
+            if tokens[index-1]['type'] == 'PLUS' or tokens[index-1]['type'] == 'MINUS':
+                # Handle division or multiplication of negative number like n * -1 or n / -1
+                if tokens[index-1]['type'] == 'MINUS' and (tokens[index - 2]['type'] == 'MALTIPLY' or tokens[index - 2]['type'] == 'DIVIDE'):
+                    temp = tokens[index]['number'] * -1
+                    if tokens[index - 2]['type'] == 'MALTIPLY':
+                        tokens[index - 3]['number'] *= temp
+                    elif tokens[index - 2]['type'] == 'DIVIDE':
+                        tokens[index - 3]['number'] /= temp
+                    tokens.pop(index)
+                    tokens.pop(index-1)
+                    tokens.pop(index-2)
+                    index += 1
+                    continue
+                # else (just plus or minus, skip)
+                index += 1
+                continue
+            # if operator is '*' or '/'
+            elif tokens[index -1]['type'] == 'MALTIPLY' or tokens[index -1]['type'] == 'DIVIDE':
+                if tokens[index - 1]['type'] == 'MALTIPLY':
+                    temp = tokens[index - 2]['number'] * tokens[index]['number']
+                else:
+                    temp = tokens[index - 2]['number'] / tokens[index]['number']
+                tokens[index - 2]['number'] = temp
+                tokens.pop(index)
+                tokens.pop(index-1)
+                index -= 1
+            else:
+                print('Invalid syntax')
+                exit(1)
+        index += 1
+
+    answer = 0
+    index = 1
+    # Calculate '+' and '-'
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
             if tokens[index - 1]['type'] == 'PLUS':
@@ -59,7 +111,6 @@ def evaluate(tokens):
         index += 1
     return answer
 
-
 def test(line):
     tokens = tokenize(line)
     actual_answer = evaluate(tokens)
@@ -67,14 +118,75 @@ def test(line):
     if abs(actual_answer - expected_answer) < 1e-8:
         print("PASS! (%s = %f)" % (line, expected_answer))
     else:
-        print("FAIL! (%s should be %f but was %f)" % (line, expected_answer, actual_answer))
+        print('\033[31m' + "FAIL! (%s should be %f but was %f)" % (line, expected_answer, actual_answer) + '\033[0m') #color red
 
 
 # Add more tests to this function :)
 def run_test():
     print("==== Test started! ====")
+    # normal
     test("1+2")
     test("1.0+2.1-3")
+    test("3.0+4*2-1/5")
+    # only a number
+    print("-----only a number-----")
+    test("1")
+    test("-1")
+    test("2147483647")
+    # only integer
+    print("-----only integer-----")
+    test("1+2")
+    test("1-2")
+    test("1*2")
+    test("1/2")
+    # float and integer
+    print("-----float and integer-----")
+    test("1.0+2")
+    test("1.0-2")
+    test("1.0*2")
+    test("1.0/2")
+    # only float
+    print("-----only float-----")
+    test("1.0+2.1")
+    test("1.0-2.1")
+    test("1.0*2.1")
+    test("1.0/2.1")
+    # negative number and positiv number
+    print("-----negative number and positive number-----")
+    test("-1+2")
+    test("-1-2")
+    test("-1*2")
+    test("-1/2")
+    test("1*-2")
+    test("1/-2")
+    # only negative number
+    print("-----only negative number-----")
+    test("-1*-2")
+    test("-1/-2")
+    # include 0
+    print("-----include 0-----")
+    test("0+1")
+    test("0-1")
+    test("0*1")
+    test("0/1")
+    # mix
+    print("-----mix------")
+    test("1+2*3")
+    test("1-2*3")
+    test("1*2*3")
+    test("1/2/3")
+    test("1/3+2/3")
+    test("4+2-3.0*4/2.1")
+    test("4.5-2*3.0")
+    test("6.2+2/4.5")
+    test("4.8+2.1*3-1.3")
+    test("6.6/3.2+1.7-2.5")
+    test("2.4+3.7*4.2-6.5/2.8")
+    # boundary value
+    print("-----boundary value-----")
+    test("2147483647+1")
+    test("-2147483648-1")
+
     print("==== Test finished! ====\n")
 
 run_test()
