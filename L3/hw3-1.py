@@ -27,7 +27,7 @@ def read_minus(line, index):
 
 
 def read_multiply(line, index):
-    token = {'type': 'MALTIPLY'}
+    token = {'type': 'MULTIPLY'}
     return token, index + 1
 
 
@@ -57,42 +57,44 @@ def tokenize(line):
         tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
     return tokens
 
+
 def evaluate_multiply_divide(tokens):
     temp = 0
     index = 1
+    # Caluculate '*' and '/'
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
             # if operator is '+' or '-', basicaly just skip
             if tokens[index-1]['type'] == 'PLUS' or tokens[index-1]['type'] == 'MINUS':
                 # Handle division or multiplication of negative number like n * -1 or n / -1
-                if tokens[index-1]['type'] == 'MINUS' and (tokens[index - 2]['type'] == 'MALTIPLY' or tokens[index - 2]['type'] == 'DIVIDE'):
+                if tokens[index-1]['type'] == 'MINUS' and (tokens[index - 2]['type'] == 'MULTIPLY' or tokens[index - 2]['type'] == 'DIVIDE'):
                     temp = tokens[index]['number'] * -1
-                    if tokens[index - 2]['type'] == 'MALTIPLY':
+                    if tokens[index - 2]['type'] == 'MULTIPLY':
                         tokens[index - 3]['number'] *= temp
                     elif tokens[index - 2]['type'] == 'DIVIDE':
                         tokens[index - 3]['number'] /= temp
-                    tokens.pop(index)
-                    tokens.pop(index-1)
-                    tokens.pop(index-2)
+                    del tokens[index - 2:index + 1]
                     index += 1
                     continue
-                # else (just plus or minus, then skip)
+                # else (just plus or minus, skip)
                 index += 1
                 continue
             # if operator is '*' or '/'
-            elif tokens[index -1]['type'] == 'MALTIPLY' or tokens[index -1]['type'] == 'DIVIDE':
-                if tokens[index - 1]['type'] == 'MALTIPLY':
-                    temp = tokens[index - 2]['number'] * tokens[index]['number']
+            elif tokens[index -1]['type'] == 'MULTIPLY' or tokens[index -1]['type'] == 'DIVIDE':
+                left = tokens[index - 2]['number']
+                right = tokens[index]['number']
+                if tokens[index - 1]['type'] == 'MULTIPLY':
+                    temp = left * right
                 else:
-                    temp = tokens[index - 2]['number'] / tokens[index]['number']
+                    temp = left / right
                 tokens[index - 2]['number'] = temp
-                tokens.pop(index)
-                tokens.pop(index-1)
-                index -= 1
+                del tokens[index - 1:index + 1]
             else:
                 print('Invalid syntax')
                 exit(1)
-        index += 1
+        else:
+            index += 1
+
 
 def evaluate_plus_minus(tokens):
     answer = 0
@@ -109,6 +111,7 @@ def evaluate_plus_minus(tokens):
         index += 1
     return answer
 
+
 def evaluate(tokens):
     # Caluculate '*' and '/' first
     evaluate_multiply_divide(tokens)
@@ -116,11 +119,12 @@ def evaluate(tokens):
     answer = evaluate_plus_minus(tokens)
     return answer
 
+
 def test(line):
     tokens = tokenize(line)
     actual_answer = evaluate(tokens)
     expected_answer = eval(line)
-    if abs(actual_answer - expected_answer) < 1e-8: #! ? 1e-8 = 10^-8
+    if abs(actual_answer - expected_answer) < 1e-8: # 1e-8 = 10^-8
         print("PASS! (%s = %f)" % (line, expected_answer))
     else:
         print('\033[31m' + "FAIL! (%s should be %f but was %f)" % (line, expected_answer, actual_answer) + '\033[0m') #color red
