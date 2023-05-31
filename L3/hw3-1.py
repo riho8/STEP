@@ -54,14 +54,12 @@ def tokenize(line):
             print('Invalid character found: ' + line[index])
             exit(1)
         tokens.append(token)
+        tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
     return tokens
 
-
-def evaluate(tokens):
+def evaluate_multiply_divide(tokens):
     temp = 0
-    tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
     index = 1
-    # Caluculate '*' and '/'
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
             # if operator is '+' or '-', basicaly just skip
@@ -78,7 +76,7 @@ def evaluate(tokens):
                     tokens.pop(index-2)
                     index += 1
                     continue
-                # else (just plus or minus, skip)
+                # else (just plus or minus, then skip)
                 index += 1
                 continue
             # if operator is '*' or '/'
@@ -96,9 +94,9 @@ def evaluate(tokens):
                 exit(1)
         index += 1
 
+def evaluate_plus_minus(tokens):
     answer = 0
     index = 1
-    # Calculate '+' and '-'
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
             if tokens[index - 1]['type'] == 'PLUS':
@@ -111,11 +109,18 @@ def evaluate(tokens):
         index += 1
     return answer
 
+def evaluate(tokens):
+    # Caluculate '*' and '/' first
+    evaluate_multiply_divide(tokens)
+    # Calculate '+' and '-'
+    answer = evaluate_plus_minus(tokens)
+    return answer
+
 def test(line):
     tokens = tokenize(line)
     actual_answer = evaluate(tokens)
     expected_answer = eval(line)
-    if abs(actual_answer - expected_answer) < 1e-8:
+    if abs(actual_answer - expected_answer) < 1e-8: #! ? 1e-8 = 10^-8
         print("PASS! (%s = %f)" % (line, expected_answer))
     else:
         print('\033[31m' + "FAIL! (%s should be %f but was %f)" % (line, expected_answer, actual_answer) + '\033[0m') #color red
