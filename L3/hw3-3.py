@@ -27,7 +27,7 @@ def read_minus(line, index):
 
 
 def read_multiply(line, index):
-    token = {'type': 'MALTIPLY'}
+    token = {'type': 'MULTIPLY'}
     return token, index + 1
 
 
@@ -42,23 +42,6 @@ def read_bracket_open(line, index):
 def read_bracket_close(line, index):
     token = {'type': 'BRACKET_CLOSE'}
     return token, index + 1
-
-def read_curly_bracket_open(line, index):
-    token = {'type': 'CURLY_BRACKET_OPEN'}
-    return token, index + 1
-
-def read_curly_bracket_close(line, index):
-    token = {'type': 'CURLY_BRACKET_CLOSE'}
-    return token, index + 1
-
-def read_square_bracket_open(line, index):
-    token = {'type': 'SQUARE_BRACKET_OPEN'}
-    return token, index + 1
-
-def read_square_bracket_close(line, index):
-    token = {'type': 'SQUARE_BRACKET_CLOSE'}
-    return token, index + 1
-
 
 def tokenize(line):
     tokens = []
@@ -78,14 +61,6 @@ def tokenize(line):
             (token, index) = read_bracket_open(line, index)
         elif line[index] == ')':
             (token, index) = read_bracket_close(line, index)
-        elif line[index] == '{':
-            (token, index) = read_curly_bracket_open(line, index)
-        elif line[index] == '}':
-            (token, index) = read_curly_bracket_close(line, index)
-        elif line[index] == '[':
-            (token, index) = read_square_bracket_open(line, index)
-        elif line[index] == ']':
-            (token, index) = read_square_bracket_close(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
@@ -103,34 +78,33 @@ def evaluate_multiply_divide(tokens):
             # if operator is '+' or '-', basicaly just skip
             if tokens[index-1]['type'] == 'PLUS' or tokens[index-1]['type'] == 'MINUS':
                 # Handle division or multiplication of negative number like n * -1 or n / -1
-                if tokens[index-1]['type'] == 'MINUS' and (tokens[index - 2]['type'] == 'MALTIPLY' or tokens[index - 2]['type'] == 'DIVIDE'):
+                if tokens[index-1]['type'] == 'MINUS' and (tokens[index - 2]['type'] == 'MULTIPLY' or tokens[index - 2]['type'] == 'DIVIDE'):
                     temp = tokens[index]['number'] * -1
-                    if tokens[index - 2]['type'] == 'MALTIPLY':
+                    if tokens[index - 2]['type'] == 'MULTIPLY':
                         tokens[index - 3]['number'] *= temp
                     elif tokens[index - 2]['type'] == 'DIVIDE':
                         tokens[index - 3]['number'] /= temp
-                    tokens.pop(index)
-                    tokens.pop(index-1)
-                    tokens.pop(index-2)
+                    del tokens[index - 2:index + 1]
                     index += 1
                     continue
                 # else (just plus or minus, skip)
                 index += 1
                 continue
             # if operator is '*' or '/'
-            elif tokens[index -1]['type'] == 'MALTIPLY' or tokens[index -1]['type'] == 'DIVIDE':
-                if tokens[index - 1]['type'] == 'MALTIPLY':
-                    temp = tokens[index - 2]['number'] * tokens[index]['number']
+            elif tokens[index -1]['type'] == 'MULTIPLY' or tokens[index -1]['type'] == 'DIVIDE':
+                left = tokens[index - 2]['number']
+                right = tokens[index]['number']
+                if tokens[index - 1]['type'] == 'MULTIPLY':
+                    temp = left * right
                 else:
-                    temp = tokens[index - 2]['number'] / tokens[index]['number']
+                    temp = left / right
                 tokens[index - 2]['number'] = temp
-                tokens.pop(index)
-                tokens.pop(index-1)
-                index -= 1
+                del tokens[index - 1:index + 1]
             else:
                 print('Invalid syntax')
                 exit(1)
-        index += 1
+        else:
+            index += 1
 
 def evaluate_plus_minus(tokens):
     answer = 0
@@ -148,32 +122,17 @@ def evaluate_plus_minus(tokens):
         index += 1
     return answer
 
-def evaluate_without_bracket(tokens):
-    evaluate_multiply_divide(tokens)
-    answer = evaluate_plus_minus(tokens)
-    return answer
-
-def evaluate(tokens):
-    evaluate_bracket(tokens)
-    evaluate_multiply_divide(tokens)
-    answer = evaluate_plus_minus(tokens)
-    return answer
-
 def evaluate_bracket(tokens):
     index = 0
     while index < len(tokens):
-        # print(tokens)
-        if tokens[index]['type'] == 'BRACKET_OPEN' or tokens[index]['type'] == 'CURLY_BRACKET_OPEN' or tokens[index]['type'] == 'SQUARE_BRACKET_OPEN':
-            if tokens[index]['type'] == 'BRACKET_OPEN':
-                closing_bracket = 'BRACKET_CLOSE'
-            elif tokens[index]['type'] == 'CURLY_BRACKET_OPEN':
-                closing_bracket = 'CURLY_BRACKET_CLOSE'
-            elif tokens[index]['type'] == 'SQUARE_BRACKET_OPEN':
-                closing_bracket = 'SQUARE_BRACKET_CLOSE'
+        # print(index,tokens)
+        if tokens[index]['type'] == 'BRACKET_OPEN':
             index_open = index
             index_close = index_open + 1
             while index_close < len(tokens):
-                if tokens[index_close]['type'] == closing_bracket:
+                if(tokens[index_close]['type'] == 'BRACKET_OPEN'):
+                    index_open = index_close
+                if tokens[index_close]['type'] == 'BRACKET_CLOSE':
                     break
                 index_close += 1
             target = tokens[index_open+1:index_close]
@@ -183,9 +142,15 @@ def evaluate_bracket(tokens):
             tokens[index_open]['type'] = 'NUMBER'
             tokens[index_open]['number'] = answer
             del tokens[index_open+1:index_close+1]
-        index += 1
+        else:
+            index += 1
     # print(tokens)
-    return tokens
+
+def evaluate(tokens):
+    evaluate_bracket(tokens)
+    evaluate_multiply_divide(tokens)
+    answer = evaluate_plus_minus(tokens)
+    return answer
 
 def test(line):
     tokens = tokenize(line)
@@ -269,7 +234,8 @@ def run_test():
     test("1*(2+3)")
     test("(1+2)*(3+4)")
     test("9*(8+7)-6/3+(21+2)")
-    
+    test("1+2*(3+4*(5+6))")
+    test("9*(8+7)-(6-(5+4)/3)*21")
     print("==== Test finished! ====\n")
 
 run_test()
