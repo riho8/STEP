@@ -95,11 +95,11 @@ def tokenize(line):
 # |tokens|: list of tokens
 # Return value: list of converted tokens
 def convert(tokens):
-    # list of converted tokens
+    # List of converted tokens
     result = []
-    # list of operators
+    # List of operators
     operators = []
-    # priority of operators
+    # Priority of operators
     priority = {
         "PLUS": 1,
         "MINUS": 1,
@@ -113,22 +113,22 @@ def convert(tokens):
             if operators and token['type'] == "BRACKET_OPEN":
                 operators.append(token)
                 continue
-            # if operator is ), pop operators until found (
+            # If operator is ), pop operators until found (
             elif token['type'] == 'BRACKET_CLOSE':
                 while operators and operators[-1]['type'] != "BRACKET_OPEN":
                     result.append(operators.pop())
                 # pop )'s pair (
                 operators.pop()
                 continue
-            # pop operators until found operator with lower priority
+            # Pop operators until found operator with lower priority
             elif operators and priority[operators[-1]['type']] > priority[token['type']]:
                 while operators:
                     result.append(operators.pop())
             operators.append(token)
-        # if number, append it to result
+        # If number, append it to result
         else:
             result.append(token)
-    # append the rest of operators to result (reverse order)
+    # Append the rest of operators to result (reverse order)
     while operators:
         result.append(operators.pop())
 
@@ -141,7 +141,7 @@ def convert(tokens):
 # |tokens|: list of tokens
 # Return value: calculated value
 def evaluate(tokens):
-    # convert infix to postfix
+    # Convert infix to postfix
     tokens = convert(tokens)
     answer = []
     index = 0

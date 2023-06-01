@@ -20,16 +20,16 @@ def read_number(line, index, tokens):
             number += int(line[index]) * decimal
             decimal /= 10
             index += 1
-    # if before the number there is a minus sign, then make the number negative
+    # If before the number there is a minus sign, then make the number negative
     if tokens and tokens[-1]['type'] == 'MINUS':
         number *= -1
-        #if the number is to be multiplied/divided, then delete the minus sign (to calculate expressions like n *-1 or n/-1)
+        # If the number is to be multiplied/divided, then delete the minus sign (to calculate expressions like n *-1 or n/-1)
         # e.g. 1*-1
         # before [{'type': 'NUMBER', 'number': 1},  {'type': 'MULTIPLY'}, {'type': 'MINUS'}, {'type': 'NUMBER', 'number': 1}]
         # after [{'type': 'NUMBER', 'number': 1}, {'type': 'MULTIPLY'}, {'type': 'NUMBER', 'number': -1}]
         if len(tokens) > 2 and (tokens[-2]['type'] == 'MULTIPLY' or tokens[-2]['type'] == 'DIVIDE'):
             tokens.pop()
-        #if the number is to be added/subtracted, then change the operator to plus
+        # If the number is to be added/subtracted, then change the operator to plus
         # e.g. 1-1 => 1+(-1)
         # before [{'type': 'NUMBER', 'number': 1},   {'type': 'MINUS'}, {'type': 'NUMBER', 'number': 1}]
         # after [{'type': 'NUMBER', 'number': 1}, {'type': 'PLUS'},  {'type': 'NUMBER', 'number': -1}]
@@ -103,11 +103,11 @@ def evaluate_multiply_divide(tokens):
     # Caluculate '*' and '/'
     while index < len(tokens):
         if tokens[index]['type'] == 'NUMBER':
-            # if operator is '+' or '-', just skip
+            # If operator is '+' or '-', just skip
             if tokens[index-1]['type'] == 'PLUS' or tokens[index-1]['type'] == 'MINUS':
                 index += 1
                 continue
-            # if operator is '*' or '/'
+            # If operator is '*' or '/'
             elif tokens[index -1]['type'] == 'MULTIPLY' or tokens[index -1]['type'] == 'DIVIDE':
                 left = tokens[index - 2]['number']
                 right = tokens[index]['number']
@@ -136,7 +136,7 @@ def evaluate_plus_minus(tokens):
         if tokens[index]['type'] == 'NUMBER':
             if tokens[index - 1]['type'] == 'PLUS':
                 answer += tokens[index]['number']
-            # keep MINUS to handle expressions with bracket like 1-(3+2)
+            # Keep MINUS to handle expressions with bracket like 1-(3+2)
             elif tokens[index - 1]['type'] == 'MINUS':
                 answer -= tokens[index]['number']
             else:
@@ -154,7 +154,7 @@ def evaluate_plus_minus(tokens):
 def evaluate(tokens):
     # Caluculate '*' and '/' first
     evaluate_multiply_divide(tokens)
-    # then Calculate '+' and '-'
+    # Then Calculate '+' and '-'
     answer = evaluate_plus_minus(tokens)
     return answer
 
