@@ -167,7 +167,7 @@ def evaluate_plus_minus(tokens):
 # |tokens|: list of tokens
 # Return value: None
 def evaluate_bracket(tokens):
-    index = 0
+    index = 1
     while index < len(tokens):
         if tokens[index]['type'] == 'BRACKET_OPEN':
             index_open = index
@@ -175,7 +175,7 @@ def evaluate_bracket(tokens):
             # find the corresponding close bracket
             while index_close < len(tokens):
                 # if there is another open bracket, update the index of open bracket
-                if(tokens[index_close]['type'] == 'BRACKET_OPEN'):
+                if tokens[index_close]['type'] == 'BRACKET_OPEN':
                     index_open = index_close
                 if tokens[index_close]['type'] == 'BRACKET_CLOSE':
                     break
