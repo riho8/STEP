@@ -1,4 +1,5 @@
 #! /usr/bin/python3
+import sys
 
 def read_number(line, index):
     number = 0
@@ -193,8 +194,9 @@ def run_test():
     test("2.4+3.7*4.2-6.5/2.8")
     # boundary value
     print("-----boundary value-----")
-    test("2147483647+1")
-    test("-2147483648-1")
+    test(f"{sys.maxsize}+1")
+    test(f"{sys.maxsize}-1")
+    
 
     print("==== Test finished! ====\n")
 
