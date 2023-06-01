@@ -55,7 +55,7 @@ def tokenize(line):
             print('Invalid character found: ' + line[index])
             exit(1)
         tokens.append(token)
-        tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
+    tokens.insert(0, {'type': 'PLUS'}) # Insert a dummy '+' token
     return tokens
 
 
@@ -126,7 +126,7 @@ def test(line):
     actual_answer = evaluate(tokens)
     expected_answer = eval(line)
     if abs(actual_answer - expected_answer) < 1e-8: # 1e-8 = 10^-8
-        print("PASS! (%s = %f)" % (line, expected_answer))
+        print('\033[32m' +"PASS!" + '\033[0m' +"(%s = %f)" % (line, expected_answer))
     else:
         print('\033[31m' + "FAIL! (%s should be %f but was %f)" % (line, expected_answer, actual_answer) + '\033[0m') #color red
 
