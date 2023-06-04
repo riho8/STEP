@@ -84,53 +84,43 @@ class Wikipedia:
     # Find the shortest path.
     # |start|: The title of the start page.
     # |goal|: The title of the goal page.
+    #! node == goal_key 必要？
     def find_shortest_path(self, start, goal):
         start_key = self.get_key_from_value(start)
         goal_key = self.get_key_from_value(goal)
         queue = deque()
         visited = {}
         path = {}
-        get_shortest = False
         visited[start_key] = True
         queue.append(start_key)
         while len(queue) > 0:
             node = queue.popleft()
-            if node == goal_key:
-                get_shortest = True
-                break 
             for child in self.links[node]:
                 if not child in visited:
                     visited[child] = True
                     queue.append(child)
                     path[child] = node
                 if child == goal_key:
-                    get_shortest = True
-                    break
-            if get_shortest == True:
-                break
-        if get_shortest == True:
-            ans = []
-            ans.append(goal_key)
-            while path[child] != start_key:
-                ans.append(path[child])
-                child = path[child]
-            ans.append(start_key)
-            ans.reverse()
-            print("The shortest path is:\n",[self.titles[i] for i in ans])
-        else:
-            print("Not found")
+                    ans = []
+                    ans.append(goal_key)
+                    while path[child] != start_key:
+                        ans.append(path[child])
+                        child = path[child]
+                    ans.append(start_key)
+                    ans.reverse()
+                    print("The shortest path is:\n",[self.titles[i] for i in ans])
+                    print()
+                    return
+        print("Not found")
+        print()
         return
-
-
- 
-
 
     # Calculate the page ranks and print the most popular pages.
     def find_most_popular_pages(self):
         #------------------------#
         # Write your code here!  #
         #------------------------#
-        pass #! 何も実行しないときに書く
+        pass 
 
 
     # Do something more interesting!!
@@ -138,7 +128,7 @@ class Wikipedia:
         #------------------------#
         # Write your code here!  #
         #------------------------#
-        pass
+        pass 
 
 # python3 hw4-1.py wikipedia_dataset/pages_small.txt wikipedia_dataset/links_small.txt
 # python3 hw4-1.py wikipedia_dataset/pages_medium.txt wikipedia_dataset/links_medium.txt
@@ -149,13 +139,17 @@ if __name__ == "__main__":
         exit(1)
 
     wikipedia = Wikipedia(sys.argv[1], sys.argv[2])
-    wikipedia.find_longest_titles()
-    wikipedia.find_most_linked_pages()
+    # wikipedia.find_longest_titles()
+    # wikipedia.find_most_linked_pages()
     if sys.argv[1] == "wikipedia_dataset/pages_small.txt":
         wikipedia.find_shortest_path("A", "F")
         wikipedia.find_shortest_path("A", "B")
         wikipedia.find_shortest_path("C", "E")
         wikipedia.find_shortest_path("B", "E")
+        wikipedia.find_shortest_path("D", "A")
+        wikipedia.find_shortest_path("E", "A")
     else:
         wikipedia.find_shortest_path("渋谷", "小野妹子")
+        wikipedia.find_shortest_path("渋谷", "HUNTER×HUNTER")
+        wikipedia.find_shortest_path("不動院前駅", "コンブ")
     wikipedia.find_most_popular_pages()
