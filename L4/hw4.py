@@ -1,6 +1,7 @@
 import sys
 from collections import deque
 import pandas as pd
+import numpy as np
 
 class Wikipedia:
 
@@ -47,7 +48,8 @@ class Wikipedia:
         count = 0
         index = 0
         while count < 15 and index < len(titles):
-            if titles[index].find("_") == -1: #! これどういうこと?
+            # アンダースコアを含むタイトルは出力されないようにする
+            if titles[index].find("_") == -1:
                 print(titles[index])
                 count += 1
             index += 1
@@ -126,27 +128,28 @@ class Wikipedia:
         print("Not found")
         print()
 
+
     # Calculate the page ranks and print the most popular pages.
     def find_most_popular_pages(self):
         # Initialize the page ranks to 1. (Use key of self.titles)
         ranks = {key: 1 for key in self.titles.keys()}
         prev_sum = 0
-        for i in range(100):
+        for i in range(10):
             # Initialize the update page ranks to 0.
             update_ranks = {key: 0 for key in self.titles.keys()}
             # Calculate the sum of the page ranks and update the page ranks.
             for key in ranks:
                 # If the page has no linked page, then distribute its rank to all pages.
                 if len(self.links[key]) == 0:
-                    for i in ranks:
-                        update_ranks[i] += 1.0 * ranks[key] / len(ranks)
+                    for child in ranks:
+                        update_ranks[child] += 1.0 * ranks[key] / len(ranks)
                 else:
                     # Distribute the 85% of the page rank to the linked pages.
                     for dst in self.links[key]:
                         update_ranks[dst] += 0.85 * ranks[key] / len(self.links[key])
                     # Distribute the 15% of the page rank to all pages.
-                    for i in ranks:
-                        update_ranks[i] += 0.15 * ranks[key] / len(ranks)
+                    for child in ranks:
+                        update_ranks[child] += 0.15 * ranks[key] / len(ranks)
             # Update the page ranks.
             ranks = update_ranks
             # Calculate the sum of the page ranks.
