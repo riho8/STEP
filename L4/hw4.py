@@ -75,7 +75,9 @@ class Wikipedia:
                 print(self.titles[dst], link_count_max)
         print()
 
-    #! 追加
+    # Get the key from the value(title).
+    #
+    # |val|: The title of the page.
     def get_key_from_value(self, val):
         for key, value in self.titles.items():
             if val == value:
@@ -86,7 +88,6 @@ class Wikipedia:
     #
     # |start|: The title of the start page.
     # |goal|: The title of the goal page.
-    #! node == goal_key 必要？
     def find_shortest_path(self, start, goal):
         start_key = self.get_key_from_value(start)
         goal_key = self.get_key_from_value(goal)
@@ -108,6 +109,7 @@ class Wikipedia:
                     queue.append(child)
                     # Save the path {child: node}
                     path[child] = node
+                # If the child is the goal key, then print the path.
                 if child == goal_key:
                     # Get the path in correct order.
                     ans = []
