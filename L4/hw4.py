@@ -2,6 +2,7 @@ import sys
 from collections import deque
 import pandas as pd
 import numpy as np
+from scipy.sparse import coo_matrix
 
 class Wikipedia:
 
@@ -127,44 +128,71 @@ class Wikipedia:
                     return
         print("Not found")
         print()
-
-
-    # Calculate the page ranks and print the most popular pages.
+    
     def find_most_popular_pages(self):
-        # Initialize the page ranks to 1. (Use key of self.titles)
-        ranks = {key: 1 for key in self.titles.keys()}
+        num_pages = len(self.titles)
+        rank_matrix = np.zeros((num_pages, num_pages))
         prev_sum = 0
-        for i in range(10):
-            # Initialize the update page ranks to 0.
-            update_ranks = {key: 0 for key in self.titles.keys()}
-            # Calculate the sum of the page ranks and update the page ranks.
-            for key in ranks:
-                # If the page has no linked page, then distribute its rank to all pages.
-                if len(self.links[key]) == 0:
-                    for child in ranks:
-                        update_ranks[child] += 1.0 * ranks[key] / len(ranks)
+        rank = 1
+        for j in range(10):
+            update_matrix = np.zeros((num_pages, num_pages))
+            for i, key in enumerate(self.links.keys()):
+                linked_pages = [list(self.titles.keys()).index(key) for key in self.links[key]]
+                num_links = len(linked_pages)
+                if j != 0:
+                    rank = np.sum(rank_matrix[i, :], axis=0)
+                if num_links == 0:
+                    update_matrix[:, i] = 1.0 *rank / num_pages
                 else:
-                    # Distribute the 85% of the page rank to the linked pages.
-                    for dst in self.links[key]:
-                        update_ranks[dst] += 0.85 * ranks[key] / len(self.links[key])
-                    # Distribute the 15% of the page rank to all pages.
-                    for child in ranks:
-                        update_ranks[child] += 0.15 * ranks[key] / len(ranks)
-            # Update the page ranks.
-            ranks = update_ranks
-            # Calculate the sum of the page ranks.
-            current_sum = sum(ranks.values())
-            # If the sum of the page ranks is not changed, then finish the iteration.
-            if abs(current_sum - prev_sum) < 1e-8:
-                break
-            prev_sum = current_sum
-        # Create pd.Series to get multiple max value's keys.
-        s = pd.Series(ranks)
-        max_rank_key = s[s == s.max()].index.tolist() # Convert to list.
+                    update_matrix[linked_pages, i] = 0.85 * rank / num_links
+                    update_matrix[:, i] += 0.15 *rank / num_pages
+            rank_matrix = update_matrix.copy()
+            print(rank_matrix.sum(axis=0))
+
+        # Find the most popular pages
+        max_rank_pages = np.where(np.sum(rank_matrix, axis=0) == np.max(np.sum(rank_matrix, axis=0)))[0]
         print("The most popular pages are:")
-        for i in max_rank_key:
-            print(self.titles[i])
+        print([list(self.titles.values())[i] for i in max_rank_pages])
         print()
+
+
+
+    # # Calculate the page ranks and print the most popular pages.
+    # def find_most_popular_pages(self):
+    #     # Initialize the page ranks to 1. (Use key of self.titles)
+    #     ranks = {key: 1 for key in self.titles.keys()}
+    #     prev_sum = 0
+    #     for i in range(10):
+    #         # Initialize the update page ranks to 0.
+    #         update_ranks = {key: 0 for key in self.titles.keys()}
+    #         # Calculate the sum of the page ranks and update the page ranks.
+    #         for key in ranks:
+    #             # If the page has no linked page, then distribute its rank to all pages.
+    #             if len(self.links[key]) == 0:
+    #                 for child in ranks:
+    #                     update_ranks[child] += 1.0 * ranks[key] / len(ranks)
+    #             else:
+    #                 # Distribute the 85% of the page rank to the linked pages.
+    #                 for dst in self.links[key]:
+    #                     update_ranks[dst] += 0.85 * ranks[key] / len(self.links[key])
+    #                 # Distribute the 15% of the page rank to all pages.
+    #                 for child in ranks:
+    #                     update_ranks[child] += 0.15 * ranks[key] / len(ranks)
+    #         # Update the page ranks.
+    #         ranks = update_ranks
+    #         # Calculate the sum of the page ranks.
+    #         current_sum = sum(ranks.values())
+    #         # If the sum of the page ranks is not changed, then finish the iteration.
+    #         if abs(current_sum - prev_sum) < 1e-8:
+    #             break
+    #         prev_sum = current_sum
+    #     # Create pd.Series to get multiple max value's keys.
+    #     s = pd.Series(ranks)
+    #     max_rank_key = s[s == s.max()].index.tolist() # Convert to list.
+    #     print("The most popular pages are:")
+    #     for i in max_rank_key:
+    #         print(self.titles[i])
+    #     print()
 
     # Do something more interesting!!
     def find_something_more_interesting(self):
