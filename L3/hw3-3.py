@@ -23,19 +23,21 @@ def read_number(line, index, tokens):
             index += 1
     # If before the number there is a minus sign, then make the number negative
     if tokens and tokens[-1]['type'] == 'MINUS':
-        number *= -1
+        
         # If the number is to be multiplied/divided, then delete the minus sign (to calculate expressions like n *-1 or n/-1)
         # e.g. 1*-1
         # before [{'type': 'NUMBER', 'number': 1},  {'type': 'MULTIPLY'}, {'type': 'MINUS'}, {'type': 'NUMBER', 'number': 1}]
         # after [{'type': 'NUMBER', 'number': 1}, {'type': 'MULTIPLY'}, {'type': 'NUMBER', 'number': -1}]
         if len(tokens) > 2 and (tokens[-2]['type'] == 'MULTIPLY' or tokens[-2]['type'] == 'DIVIDE'):
+            number *= -1
             tokens.pop()
         # If the number is to be added/subtracted, then change the operator to plus
         # e.g. 1-1 => 1+(-1)
         # before [{'type': 'NUMBER', 'number': 1},   {'type': 'MINUS'}, {'type': 'NUMBER', 'number': 1}]
         # after [{'type': 'NUMBER', 'number': 1}, {'type': 'PLUS'},  {'type': 'NUMBER', 'number': -1}]
-        else:
-            tokens[-1]['type'] = 'PLUS'
+        # # ! これなくていい
+        # else:
+        #     tokens[-1]['type'] = 'PLUS'
     token = {'type': 'NUMBER', 'number': number}
     return token, index
 
@@ -169,12 +171,14 @@ def evaluate_plus_minus(tokens):
 def evaluate_bracket(tokens):
     index = 1
     while index < len(tokens):
+        # !bracketがあったときはindex += 1をしないから、内側の()の処理が終わった後に外側の()処理に移れる
         if tokens[index]['type'] == 'BRACKET_OPEN':
             index_open = index
             index_close = index_open + 1
             # Find the corresponding close bracket
             while index_close < len(tokens):
                 # If there is another open bracket, update the index of open bracket
+                #! これがないと、bracket_closeを見つけたときに、それがペアのcloseじゃない可能性ある e.g.((1+2)+3))
                 if tokens[index_close]['type'] == 'BRACKET_OPEN':
                     index_open = index_close
                 if tokens[index_close]['type'] == 'BRACKET_CLOSE':
@@ -288,6 +292,7 @@ def run_test():
     test("1+2*(3+4*(5+6))")
     test("9*(8+7)-(6-(5+4)/3)*21")
     test("(3.0+4*(2-1))/5")
+    test("((((1+2)*3)))")
     print("==== Test finished! ====\n")
 
 run_test()
