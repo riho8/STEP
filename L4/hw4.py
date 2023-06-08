@@ -152,12 +152,12 @@ class Wikipedia:
                     for dst in self.links[key]:
                         update_ranks[dst] += 0.85 * ranks[key] / len(self.links[key])
             # Calculate the 15% of the page rank (sum of all page ranks - sum of nolink_keys) per page.
-            with_link =  0.15 * (sum(ranks.values()) - sum(nolink_keys)) / len(ranks)
+            with_link =  0.15 * (sum(ranks.values()) - sum(nolink_keys))
             # Calculate the 100% of the page rank (sum of nolink_keys) per page.
-            no_link = 1.0 * sum(nolink_keys) / len(ranks)
+            no_link = 1.0 * sum(nolink_keys)
             # Distribute them to all pages.
             for key in ranks:
-                update_ranks[key] += with_link + no_link
+                update_ranks[key] += (with_link + no_link) / len(ranks)
             # Update the page ranks.
             ranks = update_ranks
             current_sum = sum(ranks.values())
