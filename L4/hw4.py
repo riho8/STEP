@@ -1,8 +1,6 @@
 import sys
 from collections import deque
 import pandas as pd
-import numpy as np
-from scipy.sparse import coo_matrix
 
 class Wikipedia:
 
@@ -49,7 +47,7 @@ class Wikipedia:
         count = 0
         index = 0
         while count < 15 and index < len(titles):
-            # アンダースコアを含むタイトルは出力されないようにする
+            # Find the titles without "_".
             if titles[index].find("_") == -1:
                 print(titles[index])
                 count += 1
@@ -78,6 +76,7 @@ class Wikipedia:
                 print(self.titles[dst], link_count_max)
         print()
 
+
     # Get the key from the value(title).
     #
     # |val|: The title of the page.
@@ -85,7 +84,8 @@ class Wikipedia:
         for key, value in self.titles.items():
             if val == value:
                 return key
-        return "Key not found"
+        return False
+    
     
     # Find the shortest path.
     #
@@ -94,10 +94,14 @@ class Wikipedia:
     def find_shortest_path(self, start, goal):
         start_key = self.get_key_from_value(start)
         goal_key = self.get_key_from_value(goal)
+        if not start_key or not goal_key or start_key == goal_key:
+            print("Invalid input")
+            print()
+            return
         # Use deque for the queue.
         queue = deque()
         visited = {}
-        # Save the path. e.g. {"B":"A", "C":"B", "D":"C"} A->B->C->D
+        # Save the path. e.g. {"B":"A", "C":"B", "D":"B"}  A->B->D
         path = {}
         visited[start_key] = True
         queue.append(start_key)
@@ -129,70 +133,48 @@ class Wikipedia:
         print("Not found")
         print()
     
+  
+    # Calculate the page ranks and print the top 10 popular pages.
     def find_most_popular_pages(self):
-        num_pages = len(self.titles)
-        rank_matrix = np.zeros((num_pages, num_pages))
+        # Initialize the page ranks to 1. (Use key of self.titles)
+        ranks = {key: 1 for key in self.titles.keys()}
         prev_sum = 0
-        rank = 1
-        for j in range(10):
-            update_matrix = np.zeros((num_pages, num_pages))
-            for i, key in enumerate(self.links.keys()):
-                linked_pages = [list(self.titles.keys()).index(key) for key in self.links[key]]
-                num_links = len(linked_pages)
-                if j != 0:
-                    rank = np.sum(rank_matrix[i, :], axis=0)
-                if num_links == 0:
-                    update_matrix[:, i] = 1.0 *rank / num_pages
+        for i in range(10):
+            # Initialize the update page ranks to 0.
+            update_ranks = {key: 0 for key in self.titles.keys()}
+            nolink_keys = []
+            for key in ranks:
+                # If the page has no linked page, then add the page rank to the nolink_keys.
+                if len(self.links[key]) == 0:
+                    nolink_keys.append(ranks[key])
                 else:
-                    update_matrix[linked_pages, i] = 0.85 * rank / num_links
-                    update_matrix[:, i] += 0.15 *rank / num_pages
-            rank_matrix = update_matrix.copy()
-            print(rank_matrix.sum(axis=0))
-
-        # Find the most popular pages
-        max_rank_pages = np.where(np.sum(rank_matrix, axis=0) == np.max(np.sum(rank_matrix, axis=0)))[0]
-        print("The most popular pages are:")
-        print([list(self.titles.values())[i] for i in max_rank_pages])
+                    # Distribute the 85% of the page rank to the linked pages.
+                    for dst in self.links[key]:
+                        update_ranks[dst] += 0.85 * ranks[key] / len(self.links[key])
+            # Calculate the 15% of the page rank (sum of all page ranks - sum of nolink_keys) per page.
+            with_link =  0.15 * (sum(ranks.values()) - sum(nolink_keys)) / len(ranks)
+            # Calculate the 100% of the page rank (sum of nolink_keys) per page.
+            no_link = 1.0 * sum(nolink_keys) / len(ranks)
+            # Distribute them to all pages.
+            for key in ranks:
+                update_ranks[key] += with_link + no_link
+            # Update the page ranks.
+            ranks = update_ranks
+            current_sum = sum(ranks.values())
+            # If the sum of the page ranks is not changed, then finish the iteration.
+            if abs(current_sum - prev_sum) < 1e-4: # 0.0001
+                break
+            prev_sum = current_sum
+        # Sort the page ranks and get the top 10.
+        s = pd.Series(ranks)
+        sorted = s.sort_values(ascending=False)
+        max_rank_keys = sorted.head(10).index
+        print("The most popular pages are (Top 10):")
+        j = 1
+        for i in max_rank_keys:
+            print(j,":",self.titles[i])
+            j += 1
         print()
-
-
-
-    # # Calculate the page ranks and print the most popular pages.
-    # def find_most_popular_pages(self):
-    #     # Initialize the page ranks to 1. (Use key of self.titles)
-    #     ranks = {key: 1 for key in self.titles.keys()}
-    #     prev_sum = 0
-    #     for i in range(10):
-    #         # Initialize the update page ranks to 0.
-    #         update_ranks = {key: 0 for key in self.titles.keys()}
-    #         # Calculate the sum of the page ranks and update the page ranks.
-    #         for key in ranks:
-    #             # If the page has no linked page, then distribute its rank to all pages.
-    #             if len(self.links[key]) == 0:
-    #                 for child in ranks:
-    #                     update_ranks[child] += 1.0 * ranks[key] / len(ranks)
-    #             else:
-    #                 # Distribute the 85% of the page rank to the linked pages.
-    #                 for dst in self.links[key]:
-    #                     update_ranks[dst] += 0.85 * ranks[key] / len(self.links[key])
-    #                 # Distribute the 15% of the page rank to all pages.
-    #                 for child in ranks:
-    #                     update_ranks[child] += 0.15 * ranks[key] / len(ranks)
-    #         # Update the page ranks.
-    #         ranks = update_ranks
-    #         # Calculate the sum of the page ranks.
-    #         current_sum = sum(ranks.values())
-    #         # If the sum of the page ranks is not changed, then finish the iteration.
-    #         if abs(current_sum - prev_sum) < 1e-8:
-    #             break
-    #         prev_sum = current_sum
-    #     # Create pd.Series to get multiple max value's keys.
-    #     s = pd.Series(ranks)
-    #     max_rank_key = s[s == s.max()].index.tolist() # Convert to list.
-    #     print("The most popular pages are:")
-    #     for i in max_rank_key:
-    #         print(self.titles[i])
-    #     print()
 
     # Do something more interesting!!
     def find_something_more_interesting(self):
@@ -201,24 +183,26 @@ class Wikipedia:
         #------------------------#
         pass 
 
-# python3 hw4-1.py wikipedia_dataset/pages_small.txt wikipedia_dataset/links_small.txt
-# python3 hw4-1.py wikipedia_dataset/pages_medium.txt wikipedia_dataset/links_medium.txt
-# python3 hw4-1.py wikipedia_dataset/pages_large.txt wikipedia_dataset/links_large.txt
+# python3 hw4.py wikipedia_dataset/pages_small.txt wikipedia_dataset/links_small.txt
+# python3 hw4.py wikipedia_dataset/pages_medium.txt wikipedia_dataset/links_medium.txt
+# python3 hw4.py wikipedia_dataset/pages_large.txt wikipedia_dataset/links_large.txt
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("usage: %s pages_file links_file" % sys.argv[0])
         exit(1)
 
     wikipedia = Wikipedia(sys.argv[1], sys.argv[2])
-    # wikipedia.find_longest_titles()
-    # wikipedia.find_most_linked_pages()
+    wikipedia.find_longest_titles()
+    wikipedia.find_most_linked_pages()
     if sys.argv[1] == "wikipedia_dataset/pages_small.txt":
-        wikipedia.find_shortest_path("A", "F")
+        wikipedia.find_shortest_path("A", "D")
         wikipedia.find_shortest_path("A", "B")
         wikipedia.find_shortest_path("C", "E")
         wikipedia.find_shortest_path("B", "E")
         wikipedia.find_shortest_path("D", "A")
         wikipedia.find_shortest_path("E", "A")
+        wikipedia.find_shortest_path("E", "E") # Invalid input
+        wikipedia.find_shortest_path("G", "A") # Invalid input
     else:
         wikipedia.find_shortest_path("渋谷", "小野妹子")
         wikipedia.find_shortest_path("渋谷", "HUNTER×HUNTER")
