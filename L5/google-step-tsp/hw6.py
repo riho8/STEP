@@ -1,6 +1,7 @@
 import sys
 from math import sqrt
 from common import print_tour, read_input
+import time
 
 # Calculate the distance between two cities.
 # 
@@ -53,8 +54,8 @@ def two_opt(dist, tour, N):
     improvementNeeded = True
     while improvementNeeded:
         improvementNeeded = False
-        for i in range(1,N - 2):
-            for j in range(i + 2, N):
+        for i in range(1,N - 1):
+            for j in range(i + 1, N):
                 # If the route is improved by exchanging the edges (i, i+1) and (j, j+1), exchange them.
                 root1 = dist[tour[i]][tour[i+1]] + dist[tour[j]][tour[(j+1) % N]]
                 root2 = dist[tour[i]][tour[j]] + dist[tour[i+1]][tour[(j+1) % N]]
@@ -74,7 +75,6 @@ def two_opt(dist, tour, N):
 # Return value: The list of the cities in the route.
 def solve(cities,subcities,start):
     N = len(subcities)
-    min_dist = float('inf')
 
     # Calculate the distance matrix.
     dist = [[0] * N for i in range(N)]
@@ -97,8 +97,8 @@ def divide_cities(cities):
     y_coordinates = [city[1] for city in cities]
 
     # Calculate the middle point of the cities.
-    x_middle = (max(x_coordinates)- min(x_coordinates) )// 2 + min(x_coordinates)
-    y_middle = (max(y_coordinates)- min(y_coordinates) )// 2 + min(y_coordinates)
+    x_middle = sum(x_coordinates) // len(x_coordinates)
+    y_middle = sum(y_coordinates) // len(y_coordinates)
 
     # Divide the cities into four areas.
     subcities = [[] for _ in range(4)]
@@ -114,7 +114,6 @@ def divide_cities(cities):
         elif x <= x_middle and y <= y_middle: # Bottom left
             subcities[3].append(index)
     return subcities, x_middle, y_middle
-
 
 # Get the total route by caluclating route for each area.
 #
@@ -139,7 +138,10 @@ def get_tour_by_area(cities):
 # python3 -m http.server
 # http://localhost:8000/visualizer/build/default/index.html
 if __name__ == '__main__':
+    # start = time.time()
     assert len(sys.argv) > 1
     cities = read_input(sys.argv[1])
     tour = get_tour_by_area(cities)
     print_tour(tour)
+    # end = time.time()
+    # print("time: ",end - start)
