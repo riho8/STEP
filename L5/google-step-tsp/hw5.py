@@ -1,36 +1,25 @@
 import sys
 import random
+import numpy as np
 from math import sqrt
 from common import print_tour, read_input
-import time
 
 # Calculate the distance between two cities.
 # 
 # |a|: The coordinate of the first city.
 # |b|: The coordinate of the second city.
 # Return value: The distance between two cities.
-def distance(a,b):
+def dist(a,b):
     return sqrt(pow(a[0] - b[0], 2.0) + pow(a[1] - b[1], 2.0))
 
-# Calculate the total distance of the route.
-#
-# |tour|: The list of the cities (the route).
-# |dist|: The distance matrix.
-# Return value: The sum of the distances between the cities along the route.
-def total_distance(tour, dist):
-    distance = 0.0
-    for i in range(len(tour)-1):
-        distance += dist[tour[i]][tour[i+1]]
-    distance += dist[tour[-1]][tour[0]]
-    return distance
 
 # Get the route by finding the nearest city.
 #
-# |dist|: The distance matrix.
+# |cities|: The list of the cities.
 # |start|: The index of the start city.
 # |N|: The number of the cities.
 # Return value: The list of cities.
-def greedy(dist, start, N):
+def greedy(cities, start, N):
     unvisited = set(range(0, N))
     unvisited.remove(start)
     tour = [start]
@@ -38,82 +27,44 @@ def greedy(dist, start, N):
         # Current city is the last city in the tour.
         current = tour[-1]
         # Calculate the distance between the current city and all unvisited cities, and choose the nearest city.
-        next_city= min(unvisited, key=lambda city: dist[current][city])
+        next_city= min(unvisited, key=lambda city: dist(cities[current], cities[city]))
         tour.append(next_city)
         unvisited.remove(next_city)
     return tour
 
 
-# Improve the route by using 2-opt.
+# Improve the route by using 2-opt. 
+# Pick two random edges and swap them if it reduces the total distance.
 #
-# |dist|: The distance matrix.
+# |cities|: The list of the cities.
 # |tour|: The list of the cities (the route).
 # |N|: The number of the cities.
-def two_opt(dist, tour, N):
-    improvement = True
-    while improvement:
-        improvement = False
-        for i in range(1,N - 2):
-            for j in range(i + 2, N):
-                # 辺 (i, i+1) と辺 (j, j+1) を交換して改善があるか判定
-                root1 = dist[tour[i]][tour[i+1]] + dist[tour[j]][tour[(j+1) % N]]
-                root2 = dist[tour[i]][tour[j]] + dist[tour[i+1]][tour[(j+1) % N]]
-                if root1 > root2:
-                    # 辺の順序を逆にする
-                    tour[i + 1:j + 1] = tour[i + 1:j + 1][::-1]
-                    improvement = True
-    return tour
+# Return value: The sum of the distances between the cities along the route.
+def two_opt(cities,tour,N):
+    for _ in range(1000):
+        # Pick two indexs randomly. 0 <= a < b < N
+        a = random.randint(0,N-3) # N-3: make sure that a left two edeges at least.
+        b = random.randint(a+1,N-1)
+        # Calculate the distance before and after swapping.
+        before = dist(cities[tour[a]], cities[tour[a+1]]) + dist(cities[tour[b]], cities[tour[(b+1)%N]])
+        after = dist(cities[tour[a]], cities[tour[b]]) + dist(cities[tour[a+1]], cities[tour[(b+1)%N]])
+        # If the distance is reduced, swap the edges.
+        if before > after:
+            tour[a+1:b+1] = reversed(tour[a+1:b+1])
+    return sum(dist(cities[tour[i]],cities[tour[i + 1]]) for i in range(N-1)) + dist(cities[tour[0]],cities[tour[N-1]])
 
 
+# Calculate the average, minimum, maximum, and variance of the result
+#
+# |distances|: The list of the distances.
+# Return value: The average, minimum, maximum, and variance of the distances.
+def calculate_stats(distances):
+    average = sum(distances) / len(distances)
+    minimum = min(distances)
+    maximum = max(distances)
+    variance = sum((x - average) ** 2 for x in distances) / len(distances)
+    return average, minimum, maximum, variance
 
-def solve(cities,cities_list,start):
-    N = len(cities_list)
-    min_dist = float('inf')
-
-    dist = [[0] * N for i in range(N)]
-    for i in range(N):
-        for j in range(i, N):
-            dist[i][j] = dist[j][i] = distance(cities[cities_list[i]], cities[cities_list[j]])
-  
-    # print(start,cities_list[start])
-    tour = greedy(dist,start,N)
-    tour = two_opt(dist,tour,N)
-    current_dist = total_distance(tour,dist)
-    if current_dist < min_dist:
-        min_dist = current_dist
-        best_tour = tour
-    return best_tour
-
-def divide_cities(cities):
-    x_coordinates = [city[0] for city in cities]
-    y_coordinates = [city[1] for city in cities]
-
-    x_center = (max(x_coordinates)- min(x_coordinates) )// 2 + min(x_coordinates)
-    y_center = (max(y_coordinates)- min(y_coordinates) )// 2 + min(y_coordinates)
-
-    subcities = [[] for _ in range(4)]
-    
-    for index,city in enumerate(cities):
-        x, y = city[0], city[1]
-        if x <= x_center and y >= y_center: # Top left
-            subcities[0].append(index)
-        elif x >= x_center and y >= y_center: # Top right
-            subcities[1].append(index)
-        elif x >= x_center and y <= y_center: # Bottom right
-            subcities[2].append(index)
-        elif x <= x_center and y <= y_center: # Bottom left
-            subcities[3].append(index)
-    return subcities, x_center, y_center
-
-def calc_each_area(cities):
-    subcities, x_middle, y_middle = divide_cities(cities)
-    tour = []
-    for subcity in subcities:
-        distances = [distance((x_middle,y_middle),cities[index]) for index in subcity]
-        closest_city_index = distances.index(min(distances))
-        tour_temp = solve(cities,subcity,closest_city_index)
-        tour+=[subcity[index] for index in tour_temp]
-    return tour
 
 # for i in `seq 0 6`;do python3 hw5.py input_${i}.csv > output_${i}.csv; done
 # python3 hw5.py input_1.csv
@@ -122,5 +73,25 @@ def calc_each_area(cities):
 if __name__ == '__main__':
     assert len(sys.argv) > 1
     cities = read_input(sys.argv[1])
-    tour = calc_each_area(cities)
-    print_tour(tour)
+    N = len(cities)
+    min_dist = float('inf')
+    distances = []
+    # Repeat 1000 times(Get random start city for each time.)
+    for _ in range(1000):
+        # Get random start city.
+        start = random.randint(0,N-1)
+        # Greedy.
+        tour = greedy(cities,start,N)
+        # 2-opt. Get the sum of the distances between the cities along the route.
+        two_opt_dist = two_opt(cities,tour,N)
+        # Update the minimum distance and the route.
+        if two_opt_dist < min_dist:
+            min_dist = two_opt_dist
+            ans = tour
+        # distances.append(two_opt_dist)
+    # average, minimum, maximum, variance = calculate_stats(distances)
+    # print("Average:", average)
+    # print("Minimum:", minimum)
+    # print("Maximum:", maximum)
+    # print("Variance:", variance)
+    print_tour(ans)
