@@ -139,8 +139,8 @@ int* solve(City* cities, int N) {
             dist[i][j] = ans;
         }
     }
-    int topLeft =0;
-    int topRight =0;
+    int topLeft = 0;
+    int topRight = 0;
     int bottomLeft =0;
     int bottomRight =0;
 
@@ -158,6 +158,7 @@ int* solve(City* cities, int N) {
     int* best_tour = (int*)malloc(N * sizeof(int));
     for (int i = 0; i < 4; i++) {
         int start = corners[i];
+        time_t start_time = time(NULL);
         printf("start: %d\n", start);
         int* tour = greedy(dist, start, N);
         tour = two_opt(dist, tour, N);
@@ -169,6 +170,8 @@ int* solve(City* cities, int N) {
             }
         }
         free(tour);
+        time_t end_time = time(NULL);
+        printf("Time elapsed: %ld\n", end_time - start_time);
     }
     printf("Minimum distance: %lf\n", min_dist);
     for (int i = 0; i < N; i++) {
@@ -224,8 +227,6 @@ int main(int argc, char** argv) {
         N = 4096;
     
     City* cities = (City*)malloc(N * sizeof(City));
-
-    
     char str[100];
     fgets(str, N, file);
     for (int i = 0; i < N ; i++) {
