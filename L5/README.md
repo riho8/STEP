@@ -10,7 +10,7 @@
 
 hw5-> [README](https://github.com/riho8/STEP/blob/master/L5/google-step-tsp/hw5.md) [hw5.py](https://github.com/riho8/STEP/blob/master/L5/google-step-tsp/hw5.py)
 
-## hw6.py
+## [hw6.py](https://github.com/riho8/STEP/blob/master/L5/google-step-tsp/hw6.py)
 
 ### 実行方法
 
@@ -67,7 +67,7 @@ Best Score (avg)
 ### divide_cities()
 
 1. x座標のリストとy座標のリストから、x軸(xの中心）とy軸(yの中心）を得る
-2. x軸とy軸で分割された4つのエリアに、それぞれ含まれる点を新しいリストに入れていく
+2. x軸とy軸で分割された4つのエリアにそれぞれ含まれる点を新しいリストに入れていく
 
 ### solve()
 
