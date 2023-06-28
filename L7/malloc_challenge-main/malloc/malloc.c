@@ -16,7 +16,7 @@
 
 
 //! added
-#define NUM_BINS 4
+#define NUM_BINS 8
 #define SIZE_EACH_BIN 4000 / NUM_BINS
 
 //
@@ -52,23 +52,15 @@ my_heap_t my_heap;
 
 void my_add_to_free_list(my_metadata_t *metadata) {
   assert(!metadata->next);
-  //!added
+
   int bin_index = metadata->size / SIZE_EACH_BIN;
-  if (bin_index >= NUM_BINS) {
-    bin_index = NUM_BINS - 1;
-  }
 
   metadata->next = my_heap.bins[bin_index];
   my_heap.bins[bin_index] = metadata;
 }
 
 void my_remove_from_free_list(my_metadata_t *metadata, my_metadata_t *prev) {
-  //!added
-  size_t size = metadata->size;
-  int bin_index = size / SIZE_EACH_BIN;
-  if (bin_index >= NUM_BINS) {
-    bin_index = NUM_BINS - 1;
-  }
+  int bin_index =  metadata->size / SIZE_EACH_BIN;
   
   if (prev) {
     prev->next = metadata->next;
@@ -88,7 +80,6 @@ void my_initialize() {
   my_heap.dummy.size = 0;
   my_heap.dummy.next = NULL;
 
-  //! added
   for (int i = 0; i < NUM_BINS; i++) {
     my_heap.bins[i] = NULL;
   }
@@ -102,13 +93,21 @@ void *my_malloc(size_t size) {
   int bin_index = size / SIZE_EACH_BIN;
   my_metadata_t *metadata = my_heap.bins[bin_index];
   my_metadata_t *prev = NULL;
-  // First-fit: Find the first free slot the object fits.
-  // TODO: Update this logic to Best-fit!
+
+  /*// First-fit: Find the first free slot the object fits.
+  while (metadata && metadata->size < size) {
+    prev = metadata;
+    metadata = metadata->next;
+  }
+  */
+
+  /* // Best-fit: Find the smallest free slot the object fits.
   my_metadata_t *best_fit_metadata = NULL;
   my_metadata_t *best_fit_prev = NULL;
   while(metadata){
     if(metadata->size >= size){
         if(best_fit_metadata == NULL || best_fit_metadata->size > metadata->size){
+            // Update the best fit
             best_fit_metadata = metadata;
             best_fit_prev = prev;
         }
@@ -116,15 +115,31 @@ void *my_malloc(size_t size) {
     prev = metadata;
     metadata = metadata->next;
   }
-  // now, metadata points to the first free slot
+  // now, metadata points to the best free slot
   // and prev is the previous entry.
   metadata = best_fit_metadata;
-  prev = best_fit_prev;
+  prev = best_fit_prev; */
 
-  while (metadata && metadata->size < size) {
+
+  // Worst-fit: Find the largest free slot the object fits.
+  my_metadata_t *worst_fit_metadata = NULL;
+  my_metadata_t *worst_fit_prev = NULL;
+  while (metadata) {
+    if (metadata->size >= size) {
+      if (worst_fit_metadata == NULL || worst_fit_metadata->size < metadata->size) {
+        // Update the worst fit
+        worst_fit_metadata = metadata;
+        worst_fit_prev = prev;
+      }
+    }
     prev = metadata;
     metadata = metadata->next;
   }
+  // now, metadata points to the worst free slot
+  // and prev is the previous entry.
+  metadata = worst_fit_metadata;
+  prev = worst_fit_prev;
+
   if (!metadata) {
     // There was no free slot available. We need to request a new memory region
     // from the system by calling mmap_from_system().
