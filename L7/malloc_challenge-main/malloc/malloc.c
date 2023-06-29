@@ -15,8 +15,7 @@
 #include <string.h>
 
 
-//! added
-#define NUM_BINS 8
+#define NUM_BINS 10
 #define SIZE_EACH_BIN 4000 / NUM_BINS
 
 //
@@ -38,13 +37,14 @@ typedef struct my_metadata_t {
 typedef struct my_heap_t {
   my_metadata_t *free_head;
   my_metadata_t dummy;
-  my_metadata_t *bins[NUM_BINS];
 } my_heap_t;
 
 //
 // Static variables (DO NOT ADD ANOTHER STATIC VARIABLES!)
 //
-my_heap_t my_heap;
+
+// Get bins 
+my_heap_t my_heap[NUM_BINS];
 
 //
 // Helper functions (feel free to add/remove/edit!)
@@ -52,20 +52,18 @@ my_heap_t my_heap;
 
 void my_add_to_free_list(my_metadata_t *metadata) {
   assert(!metadata->next);
-
+  // Get index of bin where metadata->size should be added
   int bin_index = metadata->size / SIZE_EACH_BIN;
-
-  metadata->next = my_heap.bins[bin_index];
-  my_heap.bins[bin_index] = metadata;
+  metadata->next = my_heap[bin_index].free_head;
+  my_heap[bin_index].free_head = metadata;
 }
 
 void my_remove_from_free_list(my_metadata_t *metadata, my_metadata_t *prev) {
   int bin_index =  metadata->size / SIZE_EACH_BIN;
-  
   if (prev) {
     prev->next = metadata->next;
   } else {
-    my_heap.bins[bin_index] = metadata->next;
+    my_heap[bin_index].free_head = metadata->next;
   }
   metadata->next = NULL;
 }
@@ -75,13 +73,13 @@ void my_remove_from_free_list(my_metadata_t *metadata, my_metadata_t *prev) {
 //
 
 // This is called at the beginning of each challenge.
+// Put dummy at the beginning of each bin
 void my_initialize() {
-  my_heap.free_head = &my_heap.dummy;
-  my_heap.dummy.size = 0;
-  my_heap.dummy.next = NULL;
 
   for (int i = 0; i < NUM_BINS; i++) {
-    my_heap.bins[i] = NULL;
+    my_heap[i].free_head = &my_heap[i].dummy;
+    my_heap[i].dummy.size = 0;
+    my_heap[i].dummy.next = NULL;
   }
 }
 
@@ -91,17 +89,17 @@ void my_initialize() {
 // mmap_from_system() / munmap_to_system().
 void *my_malloc(size_t size) {
   int bin_index = size / SIZE_EACH_BIN;
-  my_metadata_t *metadata = my_heap.bins[bin_index];
+  my_metadata_t *metadata = my_heap[bin_index].free_head;
   my_metadata_t *prev = NULL;
 
-  /*// First-fit: Find the first free slot the object fits.
+ /*  // First-fit: Find the first free slot the object fits.
   while (metadata && metadata->size < size) {
     prev = metadata;
     metadata = metadata->next;
   }
   */
 
-  /* // Best-fit: Find the smallest free slot the object fits.
+/*   // Best-fit: Find the smallest free slot the object fits.
   my_metadata_t *best_fit_metadata = NULL;
   my_metadata_t *best_fit_prev = NULL;
   while(metadata){
@@ -118,10 +116,10 @@ void *my_malloc(size_t size) {
   // now, metadata points to the best free slot
   // and prev is the previous entry.
   metadata = best_fit_metadata;
-  prev = best_fit_prev; */
+  prev = best_fit_prev;
+ */
 
-
-  // Worst-fit: Find the largest free slot the object fits.
+ // Worst-fit: Find the largest free slot the object fits.
   my_metadata_t *worst_fit_metadata = NULL;
   my_metadata_t *worst_fit_prev = NULL;
   while (metadata) {
@@ -139,10 +137,10 @@ void *my_malloc(size_t size) {
   // and prev is the previous entry.
   metadata = worst_fit_metadata;
   prev = worst_fit_prev;
-
+ 
   if (!metadata) {
     // There was no free slot available. We need to request a new memory region
-    // from the system by calling mmap_from_system().
+    // from the system by calling mmap_from_system(). (add new memory)
     //
     //     | metadata | free slot |
     //     ^

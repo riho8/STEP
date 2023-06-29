@@ -76,13 +76,13 @@ void my_initialize() {
 void *my_malloc(size_t size) {
   my_metadata_t *metadata = my_heap.free_head;
   my_metadata_t *prev = NULL;
-  /*// First-fit: Find the first free slot the object fits.
+  /* // First-fit: Find the first free slot the object fits.
   while (metadata && metadata->size < size) {
     prev = metadata;
     metadata = metadata->next;
-  }*/
+  } */
 
-  // Best-fit: Find the smallest free slot the object fits.
+ /*  // Best-fit: Find the smallest free slot the object fits.
   my_metadata_t *best_fit_metadata = NULL;
   my_metadata_t *best_fit_prev = NULL;
   while(metadata){
@@ -99,10 +99,10 @@ void *my_malloc(size_t size) {
   // now, metadata points to the best free slot
   // and prev is the previous entry.
   metadata = best_fit_metadata;
-  prev = best_fit_prev;
+  prev = best_fit_prev; */
   
 
-  /*// Worst-fit: Find the largest free slot the object fits.
+  // Worst-fit: Find the largest free slot the object fits.
   my_metadata_t *worst_fit_metadata = NULL;
   my_metadata_t *worst_fit_prev = NULL;
   while (metadata) {
@@ -119,7 +119,7 @@ void *my_malloc(size_t size) {
   // now, metadata points to the worst free slot
   // and prev is the previous entry.
   metadata = worst_fit_metadata;
-  prev = worst_fit_prev;*/
+  prev = worst_fit_prev;
 
   if (!metadata) {
     // There was no free slot available. We need to request a new memory region
