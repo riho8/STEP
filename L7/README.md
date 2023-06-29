@@ -91,9 +91,11 @@
 ### free list bin
 
 1. binの数と、binごとのサイズを決める
+    <br>
+    "|size| is guaranteed to be a multiple of 8 bytes and meets 8 <= |size| <= 4000."とあったので、4000 / binの数 でbinごとのサイズを決めた。
     
     ```python
-    #define NUM_BINS 8
+    #define NUM_BINS 10
     #define SIZE_EACH_BIN 4000 / NUM_BINS
     ```
     
