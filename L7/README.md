@@ -15,7 +15,7 @@
 
 - 例えばa[2]は aのアドレス+2  (=*(a+2)) の位置を指しているという風に言い換えられるので、それを応用してr[ _ ] や r[3+_ ]を解いた。
 
-## mallocの性能改善
+## mallocの性能改善 : [malloc.c](./malloc_challenge-main/malloc/malloc.c)
 
 ### 性能比較
 ![pic1](./readme_img/compare.jpg)
@@ -23,6 +23,7 @@
 <br>
 <br>
 
+#### binの数を変えたときのtime比較
 ![pic2](./readme_img/compare_num_bins.jpg)
 *bold = best time, gray = worst time 
 
@@ -31,9 +32,9 @@
 - utilization は　worst_fit ≤ first_fit ≤ best_fit という結果だった。(主にchallenge3~5)
     - worst_fitのuitilizationが悪かったが、これは大きいサイズが必要になったときに worst_fitでは free listからfitするものを見つけづらく、mmap_from_system()を使って新しくメモリを追加することが多くなるからだと考えられる。
     - best_fitでは空き領域の中でも小さいサイズのものから使っていくため、効率的にメモリを使うことができる。
-- timeは bin使用時にそうでないときに比べてtimeが約2倍速くなった。
-    - first_fitではbin使用時にtimeがあまり速くならなかった→なぜ？
-- free list binはbinの数が10の時にbest timeのchallngeの数が一番多く、かつworst timeがなかったため10を選んだ(best_fitで比較)
+- timeは bin使用時にそうでないときに比べてtimeが約2倍速くなった。(best_fit)
+    - first_fitやworst_fitではbin使用時のtimeの改善にばらつきがあったが、これはfirst_fitやworst_fitではbest_fitに比べて空き領域不足の発生が起こりやすいので、メモリ追加時の処理でtimeが伸びているのかもしれない…?
+- free list binはbinの数が10の時にbest timeのchallngeの数が一番多く、かつworst timeがなかったため10を選んだ。(best_fitで比較)
 
 
 
